@@ -13,6 +13,6 @@ class DatabaseSeeder extends Seeder
         factory(App\Category::class, 10)->create();
         factory(App\Manufacturer::class, 10)->create();
         factory(App\Image::class, 10)->create();
-        factory(App\Product::class, 50)->create();
+        factory(App\Product::class, 100)->create();
     }
 }

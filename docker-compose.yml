@@ -1,0 +1,49 @@
+version: "1.0"
+
+services:
+
+  test_db:
+    image: mysql
+    container_name: test_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: RootTester
+      MYSQL_DATABASE: technical_test
+      MYSQL_USER: TechUser
+      MYSQL_PASSWORD: TechPass
+    networks:
+      testNet:
+        ipv4_address: 172.16.1.1
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+  
+  test_back:
+    container_name: test_back
+    restart: unless-stopped
+    build:
+      context: ./docker/php
+    ports:
+      - "8000:80"
+      - "9515:9515"
+    volumes:
+      #laravel proyect without vendor
+      - .:/var/www/xtremetecpc
+      - /var/www/xtremetecpc/vendor
+      - /var/www/xtremetecpc/docker
+      #apache config file
+      - ./docker/apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    networks:
+      testNet:
+        ipv4_address: 172.16.1.2
+    depends_on:
+      - test_db
+
+networks:
+  testNet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.1.0/16
+          gateway: 172.16.1.0

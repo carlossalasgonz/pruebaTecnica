@@ -1,0 +1,60 @@
+FROM php:7.4-apache
+
+RUN apt update \
+        && apt install -y \
+            g++ \
+            libicu-dev \
+            libpq-dev \
+            libzip-dev \
+            libxml2-dev \
+            zip \
+            zlib1g-dev \
+            libfreetype6-dev \
+            libjpeg62-turbo-dev \
+            libpng-dev
+        
+#install php modules
+RUN docker-php-ext-install \
+    intl \
+    opcache \
+    pdo \
+    pdo_mysql \
+    xmlrpc \
+    soap \
+    exif \
+    pcntl \
+    zip
+
+#install gd
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype
+RUN docker-php-ext-install gd
+
+#install apache mod_rewrite
+RUN a2enmod rewrite
+
+#Install not obligatory programs that helps to debug            
+RUN apt install -y vim
+RUN apt install -y git
+RUN apt install -y sudo
+
+WORKDIR /var/www/xtremetecpc
+
+#install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN mkdir -p storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache
+
+#reassign project files ownership
+RUN chown root:root /var/www
+RUN chmod 755 /var/www/
+RUN chown -R www-data:www-data /var/www/xtremetecpc
+RUN chmod -R 774 /var/www/xtremetecpc
+
+######################## DO THIS MANUALLY ########################
+#install vendors manually
+# COPY composer.* ./
+# USER www-data
+# RUN composer install --ignore-platform-reqs && php artisan key:generate
+# RUN php artisan migrate:fresh --seed
+# USER root
